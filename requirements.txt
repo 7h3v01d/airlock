@@ -1,0 +1,9 @@
+-e .
+pytest
+typer
+pyyaml
+pytest-cov
+pytest-json-report
+fastapi
+uvicorn
+httpx

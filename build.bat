@@ -1,0 +1,2 @@
+.venv\Scripts\python.exe -m pip install -e .
+pause

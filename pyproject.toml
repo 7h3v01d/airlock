@@ -1,0 +1,40 @@
+[build-system]
+requires = ["setuptools>=77"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "airlock"
+version = "0.3.0"
+description = "Local-first LLM-assisted software engineering with evidence-grade trust boundaries."
+requires-python = ">=3.11"
+license = "Apache-2.0"
+authors = [{ name = "Leon Priest" }]
+readme = "README.md"
+dependencies = [
+    "typer",
+    "pyyaml",
+]
+
+[project.optional-dependencies]
+dashboard = [
+    "fastapi>=0.100",
+    "uvicorn>=0.23",
+]
+testing = [
+    "pytest-cov",
+    "pytest-json-report",
+    "httpx",
+]
+
+[project.scripts]
+airlock = "airlock.main:app"
+
+[project.urls]
+Homepage = "https://github.com/7h3v01d/airlock"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["airlock*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

@@ -1,0 +1,390 @@
+{
+  "tool": "project_packager",
+  "version": "3.0.1",
+  "created_utc": "2026-10-24T01:25:17+00:00",
+  "project": "airlock",
+  "file_count": 76,
+  "total_bytes": 910435,
+  "files": [
+    {
+      "path": ".gitignore",
+      "size": 3210,
+      "sha256": "518a3af73c26ad394fb0dd12f0fc82cc01eefcffcd21c2ea8ecd6c14d1fcd7e0"
+    },
+    {
+      "path": ".packagerignore",
+      "size": 264,
+      "sha256": "8d441184fe5455d6f415d52b131a118cff551c1d9bd04deb19098bf4612cc82f"
+    },
+    {
+      "path": "CHANGELOG.md",
+      "size": 20908,
+      "sha256": "16f806825e0e7dbd4d847e790d2dced3d0b26f4356ea6b88bed1d51797480bc7"
+    },
+    {
+      "path": "LICENSE",
+      "size": 11358,
+      "sha256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30"
+    },
+    {
+      "path": "NOTICE",
+      "size": 166,
+      "sha256": "f88cebd98695060c52096a4ecb7855750ee526e0e9766e2c9b3ae4e26596be0d"
+    },
+    {
+      "path": "README.md",
+      "size": 13221,
+      "sha256": "06a7b6a3a631bc1aa89bedc7c28411f620624b002318393ef6db2aa4743e1c25"
+    },
+    {
+      "path": "airlock/__init__.py",
+      "size": 85,
+      "sha256": "74ee25133414b575f2a612177e9238e83b2b848458c199daca12f40e8f9cc78e"
+    },
+    {
+      "path": "airlock/__main__.py",
+      "size": 121,
+      "sha256": "822ff08d563b01635605444be459891fc5da74fd877352bb10008d6c2348af69"
+    },
+    {
+      "path": "airlock/commands/__init__.py",
+      "size": 85,
+      "sha256": "74ee25133414b575f2a612177e9238e83b2b848458c199daca12f40e8f9cc78e"
+    },
+    {
+      "path": "airlock/commands/candidate.py",
+      "size": 6076,
+      "sha256": "9afe5495fb45c975ea457a89c2405b3c29860c969cac198b6188579b073685cd"
+    },
+    {
+      "path": "airlock/commands/certify.py",
+      "size": 5667,
+      "sha256": "d6354933b492e06552615bcd07f626fefd61c733ba7a27e8ae9126b4539471af"
+    },
+    {
+      "path": "airlock/commands/dashboard.py",
+      "size": 1672,
+      "sha256": "bd16ecb51ea53b52ce5ba2e3a7cc882edb83d91e66529f8762b827e49ca21466"
+    },
+    {
+      "path": "airlock/commands/gate.py",
+      "size": 7670,
+      "sha256": "193195dc2f34970953cafe50bad0a2641a5973e3d673da74b9f2c0cb1f0c40cf"
+    },
+    {
+      "path": "airlock/commands/init.py",
+      "size": 4657,
+      "sha256": "f14835ff12f7915b5a012b0da07dffa3657261937ca834c11b44baf477f33bc6"
+    },
+    {
+      "path": "airlock/commands/llm.py",
+      "size": 8996,
+      "sha256": "e7a8176972b162d6dbcdcebc1770649980bc6b2b8d85a7b49f525fca74b4c449"
+    },
+    {
+      "path": "airlock/commands/report.py",
+      "size": 7953,
+      "sha256": "4eee9ded5999fd5a09d0239658a7f657c6380af3bbb022dc134fa19d146d04c0"
+    },
+    {
+      "path": "airlock/commands/spec.py",
+      "size": 5787,
+      "sha256": "e0ac5daeb50abb99dffa86c141b34a99c1243b035c961a6ac3dcba31d791b445"
+    },
+    {
+      "path": "airlock/commands/status.py",
+      "size": 6163,
+      "sha256": "2759327083a27d4d3849e6c5818657bacbd66cb945b1a2e052ed6510a259200d"
+    },
+    {
+      "path": "airlock/commands/verify.py",
+      "size": 5386,
+      "sha256": "124fb9f3ba21bd85979d273125436e71e349654f791f23e5ff4a5ae2b2be3bb0"
+    },
+    {
+      "path": "airlock/config.py",
+      "size": 3825,
+      "sha256": "b415b996f22c764b23d66ef356f01f7864ff2fe54c84ec8b071c3fe150494b5d"
+    },
+    {
+      "path": "airlock/core/__init__.py",
+      "size": 85,
+      "sha256": "74ee25133414b575f2a612177e9238e83b2b848458c199daca12f40e8f9cc78e"
+    },
+    {
+      "path": "airlock/core/candidate_store.py",
+      "size": 7970,
+      "sha256": "c9fdef05641b0ba3aef5f25f5b666c96d65fcd319a1ff49498df4f82f656071d"
+    },
+    {
+      "path": "airlock/core/certifier/__init__.py",
+      "size": 85,
+      "sha256": "74ee25133414b575f2a612177e9238e83b2b848458c199daca12f40e8f9cc78e"
+    },
+    {
+      "path": "airlock/core/certifier/runner.py",
+      "size": 16473,
+      "sha256": "5eb673faa160e07d059e853b4ebb06b9903e68158cb54e96c36e99edca993af2"
+    },
+    {
+      "path": "airlock/core/governance/__init__.py",
+      "size": 85,
+      "sha256": "74ee25133414b575f2a612177e9238e83b2b848458c199daca12f40e8f9cc78e"
+    },
+    {
+      "path": "airlock/core/governance/gate.py",
+      "size": 24481,
+      "sha256": "ed92ca77c448a23cfa33d4b1f095dac8c36992a0e719cb214ac056b13495c36f"
+    },
+    {
+      "path": "airlock/core/hashing.py",
+      "size": 6823,
+      "sha256": "77d030c8708b50a5c01e0cf6c20a6df8661053ba8f899a72028cc3a63f721a78"
+    },
+    {
+      "path": "airlock/core/spec_store.py",
+      "size": 5873,
+      "sha256": "7328a8b7f9ecfe09cb21ec0297766ceced55bb3be85821c2e3e2170fe333e5ce"
+    },
+    {
+      "path": "airlock/core/verifier/__init__.py",
+      "size": 85,
+      "sha256": "74ee25133414b575f2a612177e9238e83b2b848458c199daca12f40e8f9cc78e"
+    },
+    {
+      "path": "airlock/core/verifier/ast_scanner.py",
+      "size": 27230,
+      "sha256": "45bd614d36f8845e1e1ab45968f9eb4b5ff08a74080f5e3ba7ccd0e533acf9f5"
+    },
+    {
+      "path": "airlock/core/verifier/rules.py",
+      "size": 7038,
+      "sha256": "27f86297e68565d96145eee8fba64aee56b7d6d7c9aac9fba08b6634b38b7d91"
+    },
+    {
+      "path": "airlock/core/verifier/runner.py",
+      "size": 12780,
+      "sha256": "168c654176513238587c113b36c34a97b870cf81cbd93f485965b49ccd7d9e61"
+    },
+    {
+      "path": "airlock/dashboard/__init__.py",
+      "size": 85,
+      "sha256": "74ee25133414b575f2a612177e9238e83b2b848458c199daca12f40e8f9cc78e"
+    },
+    {
+      "path": "airlock/dashboard/reader.py",
+      "size": 11708,
+      "sha256": "1c478c0d7d1f4e37660cb7a90f2d4798e59ca30fe17c04ebaee353af525bc20b"
+    },
+    {
+      "path": "airlock/dashboard/server.py",
+      "size": 28785,
+      "sha256": "03f64ec54d46d777fb201862e581f5b64a48c868a4cc11d9b52ea2146d11247b"
+    },
+    {
+      "path": "airlock/llm/__init__.py",
+      "size": 85,
+      "sha256": "74ee25133414b575f2a612177e9238e83b2b848458c199daca12f40e8f9cc78e"
+    },
+    {
+      "path": "airlock/llm/call_logger.py",
+      "size": 2189,
+      "sha256": "8678e3282fdda96763018c54eee02b654ac6882f5b5be1cfc93fd851ef4d8ad2"
+    },
+    {
+      "path": "airlock/llm/generator.py",
+      "size": 8720,
+      "sha256": "79e228bdefd97e9d4231d2570d9d8c80652990f686193b7ebe26ff16f2466752"
+    },
+    {
+      "path": "airlock/llm/ollama_provider.py",
+      "size": 5828,
+      "sha256": "fa039738737fdc3411cfd2472559703fd5c0d73471dbe0452d6d9438e5ebefd9"
+    },
+    {
+      "path": "airlock/llm/prompt_contracts.py",
+      "size": 6742,
+      "sha256": "47c40a2a8f5324bf2e9111021089ca099b3f0f9717feca6a87839b17bc68f908"
+    },
+    {
+      "path": "airlock/llm/provider.py",
+      "size": 2878,
+      "sha256": "4bd50d0335589089eebb1bbb11ca3a7bdb49298e5e7bf3f37ec0463e524d8c4a"
+    },
+    {
+      "path": "airlock/main.py",
+      "size": 6226,
+      "sha256": "54c1623324d54be0b7b6a2be8c4881715b5fbf80d90add15270756495ddea182"
+    },
+    {
+      "path": "build.bat",
+      "size": 53,
+      "sha256": "2bf83e1c6f2e1946351342334480b386c0fc8cf3213608988d6bb53f88d387e8"
+    },
+    {
+      "path": "docs/ARCHITECTURE.md",
+      "size": 17813,
+      "sha256": "915a3d76db16e1233b60022a862c42e20dd16bff4460be628fc329b347683865"
+    },
+    {
+      "path": "docs/Airlock_User_Manual.docx",
+      "size": 28321,
+      "sha256": "5f7dc3c199418bb9cd79ccaaff9988f58bc16b05a185bd1431ce5f14fd3a32bb"
+    },
+    {
+      "path": "docs/Airlock_User_Manual.pdf",
+      "size": 292386,
+      "sha256": "8cace17ee6ae0ce00213e2303dfb4d2a52ce7aa257d1f76c681ac29cc7b36fe8"
+    },
+    {
+      "path": "docs/CERTIFICATION_LEVELS.md",
+      "size": 10101,
+      "sha256": "21a113eb44a1c9bb36848abdc26d1b00ba1484d67197ad4fa1785d2f22e700e0"
+    },
+    {
+      "path": "docs/DOCTRINE.md",
+      "size": 7763,
+      "sha256": "5abb72eb40929f72df817712328f80757e3dd50e20486f87e5178fcaa3bd8c9a"
+    },
+    {
+      "path": "docs/MVP_SCOPE.md",
+      "size": 13905,
+      "sha256": "4c4a1846f08a96f626971339638103bd44ee166b0db652912d6bdd7297f6960b"
+    },
+    {
+      "path": "docs/THREAT_MODEL.md",
+      "size": 14173,
+      "sha256": "810f0ac96e41f23df062ba67350107b51554d9a7f0b0acbbe8f158507a26b02a"
+    },
+    {
+      "path": "docs/VISION.md",
+      "size": 6421,
+      "sha256": "681ae67b0d227d8bc95c4be73a2e9cea5dfebc661f45d731e179d61967866e15"
+    },
+    {
+      "path": "dogfood/spec_hardcoded_paths.md",
+      "size": 2441,
+      "sha256": "80703791c9b74f9bf6a908eb0c50db405c3ce9ccdb0d6098173e5776db6e9519"
+    },
+    {
+      "path": "dogfood/tests/test_hardcoded_paths_rule.py",
+      "size": 7878,
+      "sha256": "4ce0db141b9d8f867a9201f6da254881cb55b7985ea38c2ac9280323778c4752"
+    },
+    {
+      "path": "flush.bat",
+      "size": 380,
+      "sha256": "a7f144508248024047baf867966fb04fd9b3f88c05e7d4c8bffda7cc560fc71e"
+    },
+    {
+      "path": "install -e.bat",
+      "size": 64,
+      "sha256": "5c72402400d66da23a969ed594f5a9b3ce1f10aeaaa60979aaa6b9ef035ac6e2"
+    },
+    {
+      "path": "pyproject.toml",
+      "size": 779,
+      "sha256": "bd4d3007dbb2d9ae57a7dc5ad435cf822f9ec0c89a376371642105ced041c773"
+    },
+    {
+      "path": "requirements.txt",
+      "size": 84,
+      "sha256": "892aafc796c9cf6b566831ee3d3d4be4a681a5ffe74d1b5d9a1076964d32d0fe"
+    },
+    {
+      "path": "setup.bat",
+      "size": 2017,
+      "sha256": "af40097777165d1bd1b5715c70e650bd7997befc436e3aa704bc876493b749d3"
+    },
+    {
+      "path": "tests/test_admission_hardening.py",
+      "size": 7468,
+      "sha256": "fd3895cc52710077f8f0d5a30625a0429bf6e0fb6a099a2cf2cbdde06c59cd87"
+    },
+    {
+      "path": "tests/test_dashboard.py",
+      "size": 9913,
+      "sha256": "229213b5c9cd39d6640f609cb16ee724b814e2b519bb33c4a7ae8e4cb8bb9871"
+    },
+    {
+      "path": "tests/test_phase1.py",
+      "size": 13682,
+      "sha256": "65da89ba8e90bb6da50b1993e70901cbc6756bcb971abdf5dca4c7bbc67ee1fd"
+    },
+    {
+      "path": "tests/test_phase2.py",
+      "size": 15521,
+      "sha256": "ff4d03ba0469a9c46eb2a815b455aada8bff460ddade5012f2774fd71e28d74c"
+    },
+    {
+      "path": "tests/test_phase3.py",
+      "size": 14798,
+      "sha256": "57f389b8ffe76dc58c59ab76185cada76b0ff8bdbbdc7d84c21fb6de061cdd55"
+    },
+    {
+      "path": "tests/test_phase4.py",
+      "size": 9888,
+      "sha256": "4ec44680596bb7146180e6a5c0739c0965938fad30018575489d9f499d91cf8d"
+    },
+    {
+      "path": "tests/test_phase5.py",
+      "size": 15289,
+      "sha256": "55b628dbfda15c8f81efb8895ec780a87edf27315f592777efb0beedf2e6dffc"
+    },
+    {
+      "path": "tests/test_phase6.py",
+      "size": 21559,
+      "sha256": "adf7257e8d54fb59bda0282855660cf31635d94cc6ea16af8a7a83f6e0b733ce"
+    },
+    {
+      "path": "tests/test_phase7b.py",
+      "size": 8288,
+      "sha256": "c4e355ab55ba6e0a85cfa8a41980fe37999828bf46ae09b90b448e63348f4154"
+    },
+    {
+      "path": "tests/test_phase7c.py",
+      "size": 11191,
+      "sha256": "46e5fe67e0a728103a76efdd794f977a9d16d3667b2ba90e85e95afaa597caf5"
+    },
+    {
+      "path": "tests/test_phase7d.py",
+      "size": 7630,
+      "sha256": "fe7fc2bcb7b403b596d2c263718197ab8605639512b73b43e777c56031e0cc49"
+    },
+    {
+      "path": "tests/test_phase7e.py",
+      "size": 8955,
+      "sha256": "144cef1f343557056d0094db1b1c9e0e97b1177b92b14f7c73503aeb2c7c3219"
+    },
+    {
+      "path": "tests/test_pipeline_integration.py",
+      "size": 8675,
+      "sha256": "643b4eaa776d8602bb6b8b53dc922fc66b0eb40cb4323208f906688075d974a6"
+    },
+    {
+      "path": "tests/test_v03_integrity.py",
+      "size": 9676,
+      "sha256": "7d4c6d3ee1aa4b36681e8fba5443062d8ec02ce0fc06d2a5e18e9202573e75b3"
+    },
+    {
+      "path": "tests/test_v03_policy.py",
+      "size": 10628,
+      "sha256": "fe68ece77bea64fca367c90b05c9107052f9e0d95136ef990fc23d88987af18b"
+    },
+    {
+      "path": "tests/test_v03_source_binding.py",
+      "size": 8960,
+      "sha256": "294d4ac8e80c3b073809c5b35cf494864bdd5e1310f560452bf5c0dcb8769697"
+    },
+    {
+      "path": "tests/test_v03_verifier.py",
+      "size": 5727,
+      "sha256": "5a0c80506314f5cab2ab753613e448327fc17ee81f03ae43b2ee67ea7b4ac549"
+    },
+    {
+      "path": "uv.lock",
+      "size": 22484,
+      "sha256": "1d53355c01f494805e33c15f9f805d2fcc50682c43e623bd4c45278636b6451e"
+    }
+  ]
+}
