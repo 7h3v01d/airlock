@@ -13,6 +13,7 @@ from pathlib import Path
 import typer
 
 from airlock.config import load_config
+from airlock.commands._signing import prepare_signer
 from airlock.core.governance.gate import (
     ALLOW, DENY, QUARANTINE, ESCALATE,
     run_gate, run_admission, run_override, AdmissionError, OverrideError,
@@ -60,6 +61,7 @@ def gate(candidate_id: str, override: bool = False, operator: str = "", reason: 
     typer.echo(f"  Evaluating evidence...")
     typer.echo("")
 
+    prepare_signer(config)
     if override:
         try:
             decision = run_override(candidate_dir, root, config, operator, reason)
@@ -182,7 +184,8 @@ def admit(candidate_id: str) -> None:
     typer.echo("")
 
     try:
-        certificate = run_admission(candidate_dir, root)
+        prepare_signer(config)
+        certificate = run_admission(candidate_dir, root, policy=config)
     except AdmissionError as exc:
         typer.echo(typer.style(f"✗ {exc}", fg=typer.colors.RED))
         raise typer.Exit(1)

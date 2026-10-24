@@ -29,8 +29,9 @@ from airlock.core.hashing import (
     find_unhashed_files, find_symlinks, tree_files,
 )
 from airlock.core.candidate_store import get_status, CandidateError
+from airlock.core import audit, signing
 
-VERSION = "0.3.0"
+VERSION = "0.4.0"
 
 # Gate decisions
 ALLOW = "ALLOW"
@@ -82,6 +83,8 @@ class GateDecision:
     overridden_decision: str = ""           # set when an operator overrode ESCALATE
     source_hash: str = ""                   # src/ tree this decision covers
     spec_hash: str = ""                     # locked spec this decision covers
+    signatures_required: bool = False       # v0.4: evidence had to be signed
+    audit_head: dict = field(default_factory=dict)   # chain head this decision saw
     evidence_hash: str = ""
 
 
@@ -105,6 +108,8 @@ def run_gate(
 
     gate_id = f"gate-{datetime.now(timezone.utc).strftime('%Y%m%d')}-{uuid.uuid4().hex[:8]}"
     now = datetime.now(timezone.utc).isoformat()
+    require_sigs = signing.signatures_required(policy)
+    signer = signing.signer_for(policy)   # raises SigningError if required but unavailable
 
     reasons: list[str] = []
     required_actions: list[str] = []
@@ -125,6 +130,7 @@ def run_gate(
         "static_verification.json",
         verdict_field="verdict",
         passing_value="PASS",
+        require_signature=require_sigs,
     )
     evidence_checks.append(asdict(ver_check))
     if ver_check.present:
@@ -133,7 +139,7 @@ def run_gate(
         reasons.append("Verifier report missing")
         required_actions.append("Run airlock verify")
     elif not ver_check.hash_valid:
-        block("Verifier report hash invalid — possible tampering")
+        block(f"Verifier report integrity failed — {ver_check.detail or 'possible tampering'}")
     elif ver_check.verdict != "PASS":
         block("Verifier report: FAIL", "Fix verifier failures and re-run airlock verify")
 
@@ -143,6 +149,7 @@ def run_gate(
         "test_report.json",
         verdict_field="certification",
         passing_value="CERTIFIED",
+        require_signature=require_sigs,
     )
     evidence_checks.append(asdict(test_check))
     if test_check.present:
@@ -151,7 +158,7 @@ def run_gate(
         reasons.append("Test report missing")
         required_actions.append("Run airlock certify")
     elif not test_check.hash_valid:
-        block("Test report hash invalid — possible tampering")
+        block(f"Test report integrity failed — {test_check.detail or 'possible tampering'}")
     elif test_check.verdict != "CERTIFIED":
         block("Test report: NOT_CERTIFIED", "Fix failing tests and re-run airlock certify")
 
@@ -159,6 +166,7 @@ def run_gate(
     cov_check = _check_evidence(
         evidence_dir / "coverage_report.json",
         "coverage_report.json",
+        require_signature=require_sigs,
     )
     evidence_checks.append(asdict(cov_check))
     if cov_check.present:
@@ -166,7 +174,7 @@ def run_gate(
     if not cov_check.present:
         reasons.append("Coverage report missing")
     elif not cov_check.hash_valid:
-        block("Coverage report hash invalid — possible tampering")
+        block(f"Coverage report integrity failed — {cov_check.detail or 'possible tampering'}")
     else:
         cert_policy = policy.get("certification", {}) or {}
         cov_data = _load_json(evidence_dir / "coverage_report.json") or {}
@@ -256,6 +264,11 @@ def run_gate(
                     and rule_id in escalating_rules and rule_id not in escalate_triggers):
                 escalate_triggers.append(rule_id)
 
+    # ── Check 7: Audit log integrity ──────────────────────────────────────────
+    audit_status = audit.verify_chain(project_root, require_signatures=require_sigs)
+    for problem in audit_status.problems:
+        block(f"Audit log integrity: {problem}", "Investigate logs/audit.jsonl (airlock audit verify)")
+
     # ── Determine decision ────────────────────────────────────────────────────
     if not ver_check.present or not test_check.present or not cov_check.present:
         decision = QUARANTINE
@@ -283,6 +296,8 @@ def run_gate(
         operator_id=operator_id,
         source_hash=recorded_source_hash,
         spec_hash=spec_hash,
+        signatures_required=require_sigs,
+        audit_head={"seq": audit_status.head_seq, "entry_hash": audit_status.head_hash},
     )
 
     # ── Write evidence ────────────────────────────────────────────────────────
@@ -290,11 +305,11 @@ def run_gate(
     gate_path = evidence_dir / "gate_decision.json"
     data = asdict(gate_decision)
     data.pop("evidence_hash", None)
-    digest = seal_evidence(gate_path, data)
+    digest = seal_evidence(gate_path, data, signer=signer)
     gate_decision.evidence_hash = digest
 
     # ── Audit log ─────────────────────────────────────────────────────────────
-    _append_audit(project_root, {
+    _append_audit(project_root, signer, {
         "event": "gate_decision",
         "gate_id": gate_id,
         "candidate_id": candidate_id,
@@ -361,9 +376,10 @@ def run_override(
     evidence_dir = project_root / "evidence" / candidate_dir.name
     data = asdict(decision)
     data.pop("evidence_hash", None)
-    decision.evidence_hash = seal_evidence(evidence_dir / "gate_decision.json", data)
+    signer = signing.signer_for(policy)
+    decision.evidence_hash = seal_evidence(evidence_dir / "gate_decision.json", data, signer=signer)
 
-    _append_audit(project_root, {
+    _append_audit(project_root, signer, {
         "event": "operator_override",
         "gate_id": decision.gate_id,
         "candidate_id": decision.candidate_id,
@@ -384,6 +400,7 @@ def run_admission(
     candidate_dir: Path,
     project_root: Path,
     operator_id: str = "operator_local",
+    policy: dict | None = None,
 ) -> dict:
     """
     Admit a gate-approved candidate into the trusted tree.
@@ -420,6 +437,19 @@ def run_admission(
             f"gate_decision.json integrity check failed: {msg}. "
             "The gate decision may have been tampered with."
         )
+
+    require_sigs = signing.signatures_required(policy)
+    if require_sigs:
+        ok, msg = signing.verify_file(gate_path)
+        if not ok:
+            raise AdmissionError(f"gate_decision.json signature check failed: {msg}.")
+    audit_status = audit.verify_chain(project_root, require_signatures=require_sigs)
+    if audit_status.problems:
+        raise AdmissionError("Audit log integrity failed: " + "; ".join(audit_status.problems))
+    try:
+        signer = signing.signer_for(policy)
+    except signing.SigningError as exc:
+        raise AdmissionError(str(exc)) from exc
 
     gate_data = _load_json(gate_path)
     if not gate_data:
@@ -514,12 +544,13 @@ def run_admission(
 
     cert_path = evidence_dir / "admission_certificate.json"
     certificate.pop("evidence_hash", None)
-    cert_hash = seal_evidence(cert_path, certificate)
+    certificate["audit_head"] = {"seq": audit_status.head_seq, "entry_hash": audit_status.head_hash}
+    cert_hash = seal_evidence(cert_path, certificate, signer=signer)
     # Store digest on the dict for the return value only (not written to file)
     certificate["evidence_hash"] = cert_hash
 
     # Audit log
-    _append_audit(project_root, {
+    _append_audit(project_root, signer, {
         "event": "candidate_admitted",
         "certificate_id": cert_id,
         "candidate_id": candidate_id,
@@ -544,8 +575,9 @@ def _check_evidence(
     document: str,
     verdict_field: str = "",
     passing_value: str = "",
+    require_signature: bool = False,
 ) -> EvidenceCheck:
-    """Check evidence file presence, sidecar integrity, and verdict field."""
+    """Check evidence file presence, sidecar integrity, signature, and verdict field."""
     if not path.exists():
         return EvidenceCheck(document=document, present=False, hash_valid=False)
 
@@ -558,6 +590,14 @@ def _check_evidence(
             hash_valid=False,
             detail=f"Integrity check failed: {msg}",
         )
+
+    if require_signature:
+        ok, msg = signing.verify_file(path)
+        if not ok:
+            return EvidenceCheck(
+                document=document, present=True, hash_valid=False,
+                detail=f"Signature check failed: {msg}",
+            )
 
     try:
         data = json.loads(path.read_text(encoding="utf-8"))
@@ -601,8 +641,5 @@ def _policy_version(project_root: Path) -> str:
     return "unknown"
 
 
-def _append_audit(project_root: Path, entry: dict) -> None:
-    audit_path = project_root / "logs" / "audit.jsonl"
-    audit_path.parent.mkdir(parents=True, exist_ok=True)
-    with audit_path.open("a", encoding="utf-8") as f:
-        f.write(json.dumps(entry) + "\n")
+def _append_audit(project_root: Path, signer: "signing.Signer | None", entry: dict) -> None:
+    audit.append_entry(project_root, entry, signer=signer)

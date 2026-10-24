@@ -15,6 +15,7 @@ from dataclasses import dataclass, field
 from datetime import datetime
 from pathlib import Path
 
+from airlock.core import audit, signing
 from airlock.core.hashing import verify_sidecar
 
 
@@ -38,6 +39,8 @@ class EvidenceItem:
     sidecar_msg: str
     verdict: str
     path: str
+    sig_ok: bool = False
+    sig_msg: str = ""
 
 
 @dataclass
@@ -146,6 +149,22 @@ class ProjectReader:
         if not cdir.exists():
             return None
         return self._read_candidate(cdir)
+
+    def integrity(self) -> dict:
+        """Audit-chain and signature status for the whole project (read-only)."""
+        required = signing.signatures_required(self._load_yaml())
+        status = audit.verify_chain(self.root, require_signatures=required)
+        return {
+            "signatures_required": required,
+            "ok": status.ok,
+            "entries": status.entries,
+            "signed_entries": status.signed_entries,
+            "legacy_entries": status.legacy_entries,
+            "head_seq": status.head_seq,
+            "head_hash": status.head_hash,
+            "anchored": status.anchored,
+            "problems": status.problems,
+        }
 
     def audit_log(self) -> list[AuditEntry]:
         log_path = self.root / "logs" / "audit.jsonl"
@@ -289,6 +308,7 @@ class ProjectReader:
                 continue
 
             ok, msg = verify_sidecar(path)
+            sig_ok, sig_msg = signing.verify_file(path)
             data = self._load_json(path) or {}
             verdict = data.get(verdict_field, "") if verdict_field else ""
 
@@ -299,6 +319,8 @@ class ProjectReader:
                 sidecar_msg=msg,
                 verdict=str(verdict),
                 path=str(path.relative_to(evidence_dir.parent.parent)),
+                sig_ok=sig_ok,
+                sig_msg=sig_msg,
             ))
         return items
 

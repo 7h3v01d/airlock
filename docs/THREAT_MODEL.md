@@ -120,11 +120,13 @@ Any path from Zone A to Zone C that does not pass through every Zone B gate is a
 **Impact:** A candidate that failed verification appears to have passed. The audit trail is corrupted.
 
 **Mitigations:**
-- All evidence documents are hash-sealed immediately upon production using SHA-256
-- The governance gate verifies the hash of each evidence document before consuming it
-- Hashes are stored in the candidate manifest and cross-referenced at gate evaluation time
-- Evidence records are written once and are not modified — new pipeline runs produce new evidence sets
-- Future: hash chain linking evidence records to produce tamper-evident audit trail
+- All evidence documents are hash-sealed immediately upon production using SHA-256 (detached sidecars)
+- *(v0.4)* Every evidence document, gate decision and certificate is signed with an Ed25519 operator key kept outside the project; the signature binds the document hash and its `<candidate>/<document>` label
+- *(v0.4)* Trusted keys and the "signatures required" floor live in the operator's Airlock home; a project cannot lower the floor
+- *(v0.4)* The audit log is hash-chained and signed; its head is anchored in the operator's home so truncation is detected, and the anchor never follows a contradicting chain
+- *(v0.4)* Gate and admission refuse to proceed on any signature or chain failure; decisions and certificates record the chain head they saw
+
+**Residual:** an attacker with the operator's OS account can read an unencrypted key (use `airlock keys init --passphrase`), and anyone holding the key and passphrase can sign.
 
 ---
 
@@ -229,7 +231,7 @@ Any path from Zone A to Zone C that does not pass through every Zone B gate is a
 
 ## Residual Risks
 
-- **Co-located sidecars.** Evidence sidecars detect accidental or naive edits, not an attacker with write access to the project who rewrites both. Planned: signed evidence and a hash-chained audit log.
+- **Operator key exposure.** Signing (v0.4) defeats project-level tampering, but candidate tests run as the operator's OS user during `airlock certify`. An unencrypted operator key is readable by that code; an encrypted key is not usable without the passphrase, which is never passed to candidates.
 - **Test execution is not sandboxed.** `airlock certify` runs candidate tests on the host with a scrubbed environment and a timeout. Test files are not verified.
 - **Static analysis limits.** The deny-first verifier raises the cost of evasion but cannot prove absence of behaviour.
 

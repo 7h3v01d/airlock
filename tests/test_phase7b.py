@@ -148,6 +148,8 @@ class TestGateIntegrityEnforcement:
             p = evidence_dir / name
             p.write_text(json.dumps(data), encoding="utf-8")
             write_sidecar(p)
+            from airlock.core import signing
+            signing.sign_file(p, signing.load_signer())  # v0.4: valid evidence is signed
 
         write_ev("static_verification.json", {"verdict": "PASS", "source_hash": bound})
         write_ev("test_report.json", {"certification": "CERTIFIED", "source_hash": bound})

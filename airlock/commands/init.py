@@ -14,7 +14,11 @@ from pathlib import Path
 
 import typer
 
+import os
+
 from airlock.config import CONFIG_FILENAME
+from airlock.core import signing
+from airlock.core.audit import project_id as audit_project_id
 
 # ── Directory layout created by init ─────────────────────────────────────────
 
@@ -60,6 +64,12 @@ verification:
   require_type_hints: true    # MISSING_TYPE_HINTS becomes blocking
   require_docstrings: false   # MISSING_DOCSTRINGS becomes blocking when true
   allowed_imports: []         # stdlib modules granted beyond the safe allowlist
+
+integrity:
+  # Evidence, gate decisions, certificates and audit entries are signed with
+  # the operator key. The operator floor in the Airlock home can require this
+  # even when a project says false; a project can never lower it.
+  require_signatures: true
 
 certification:
   test_timeout_seconds: 120
@@ -107,6 +117,17 @@ def init(project_name: str) -> None:
     audit_log = project_root / "logs" / "audit.jsonl"
     audit_log.touch()
     typer.echo(f"  {typer.style('created', fg=typer.colors.GREEN)}  logs/audit.jsonl")
+    audit_project_id(project_root)
+
+    # Operator signing key (outside the project), created once per machine
+    if not signing.private_key_path().exists():
+        passphrase = os.environ.get(signing.PASSPHRASE_ENV) or None
+        key_id = signing.generate_key(passphrase)
+        typer.echo(
+            f"  {typer.style('created', fg=typer.colors.GREEN)}  operator key {key_id} "
+            f"in {signing.airlock_home()}"
+            + ("" if passphrase else "  (unencrypted — consider: airlock keys init --passphrase --force)")
+        )
 
     # .gitignore
     _write_gitignore(project_root)

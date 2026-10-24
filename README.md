@@ -14,7 +14,7 @@ It is not an AI coding assistant. It is the **trust layer between a local LLM an
 
 ## Status
 
-🟢 **v0.3.0 — Revived as Airlock, with a hardened trust layer.** See [CHANGELOG.md](CHANGELOG.md).
+🟢 **v0.4.0 — Signed evidence and a hash-chained audit log.** See [CHANGELOG.md](CHANGELOG.md).
 
 | Phase | Description | Status |
 |---|---|---|
@@ -32,6 +32,7 @@ It is not an AI coding assistant. It is the **trust layer between a local LLM an
 | 7E | Verifier expansion (file deletion, env access, shutil) | ✅ Complete |
 | 8 | Read-only FastAPI dashboard | ✅ Complete |
 | 9 | v0.3 trust-layer hardening (source binding, deny-first verifier, real policy) | ✅ Complete |
+| 10 | v0.4 Ed25519-signed evidence, hash-chained + anchored audit log | ✅ Complete |
 
 ---
 
@@ -114,6 +115,12 @@ airlock gate <id> --override --operator NAME --reason TEXT
 airlock admit <candidate_id>          Admit to trusted tree + issue certificate
 
 airlock explain <candidate_id>        LLM explains pipeline failures (advisory)
+
+airlock keys init [--passphrase]      Create the operator signing key (outside the project)
+airlock keys show                     Key id, trusted keys, signatures floor
+airlock keys export [-o FILE]         Print/write the operator public key
+airlock keys trust <FILE>             Trust another operator's public key
+airlock audit verify [--reanchor]     Verify the audit chain, signatures and anchor
 ```
 
 ---
@@ -230,13 +237,48 @@ evidence/candidate_0001/
   gate_decision.json.sha256
   admission_certificate.json
   admission_certificate.json.sha256
+  *.json.sig                        Ed25519 signature (v0.4)
 ```
 
 Sidecars are sha256sum-compatible: `sha256sum --check file.json.sha256` works on any system.
 
-Sidecars live beside the evidence, so they detect accidental or naive edits —
-not a deliberate attacker who can write to the project and rewrite both. Signed
-evidence and a hash-chained audit log are the planned answer to that.
+Sidecars live beside the evidence, so on their own they only detect accidental
+or naive edits. Since v0.4 every evidence document is also **signed**.
+
+## Signed Evidence and Audit Chain (v0.4)
+
+**Signatures.** Verifier and certifier reports, gate decisions and admission
+certificates are signed with an Ed25519 operator key. Each signature binds the
+document's SHA-256 *and* its label (`candidate_0001/test_report.json`), so a
+valid signature cannot be moved to another document or another candidate.
+
+**Trust lives outside the project**, in the operator's Airlock home
+(`%APPDATA%\airlock` on Windows, `~/.config/airlock` elsewhere, or
+`AIRLOCK_HOME`):
+
+```
+config.json                 {"require_signatures": true}  — the operator floor
+keys/operator_ed25519.pem   private key (optionally passphrase-encrypted)
+keys/trusted/*.pub          public keys whose signatures are accepted
+anchors/<project_id>.json   last audit-chain head seen per project
+```
+
+`airlock init` creates the key on first use and sets the floor. A project's
+`integrity.require_signatures` can raise the requirement but never lower the
+floor, so editing `airlock.yaml` cannot switch signing off. With
+`airlock keys init --passphrase` the key is encrypted; set
+`AIRLOCK_KEY_PASSPHRASE` or enter it when prompted. Neither the passphrase nor
+`AIRLOCK_HOME` is passed to candidate code during `airlock certify`.
+
+**Audit chain.** Every `logs/audit.jsonl` entry carries `seq`, `prev_hash`,
+`entry_hash` and a signature. Editing, inserting, reordering or deleting an
+entry breaks the chain; cutting entries off the end is caught by the anchor in
+the operator's home, which never moves onto a chain that contradicts it. The
+gate and admission refuse to proceed on a broken chain, and gate decisions and
+certificates record the chain head they saw. `airlock audit verify` checks it
+on demand; after moving a project to a new machine, review the log and run
+`airlock audit verify --reanchor`. Pre-v0.4 entries are accepted only as an
+unverifiable prefix.
 
 ---
 
@@ -312,7 +354,7 @@ governance:
 ## Requirements
 
 - Python 3.11+
-- `pip install -e .`
+- `pip install -e .` (installs `typer`, `pyyaml`, `cryptography`)
 - `pip install pytest-cov pytest-json-report` (for test certifier)
 - `pip install -e ".[dashboard]"` (for `airlock dashboard`)
 - [Ollama](https://ollama.ai) with `deepseek-coder-v2:16b` (for LLM commands)
@@ -321,7 +363,7 @@ governance:
 
 ## Test Suite
 
-**383 tests** across 17 test files covering every pipeline phase, the dashboard, and end-to-end integration.
+**419 tests** across 19 test files covering every pipeline phase, the dashboard, and end-to-end integration.
 
 ```
 pytest tests/

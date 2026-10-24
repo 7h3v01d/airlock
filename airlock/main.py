@@ -20,6 +20,9 @@ from airlock.commands.certify import certify
 from airlock.commands.gate import gate, admit
 from airlock.commands.dashboard import dashboard
 from airlock.commands.llm import spec_draft, generate, explain
+from airlock.commands.keys import keys_init, keys_show, keys_export, keys_trust
+from airlock.commands.audit_cmd import audit_verify
+from pathlib import Path
 
 app = typer.Typer(
     name="airlock",
@@ -36,6 +39,12 @@ app.add_typer(spec_app, name="spec")
 
 candidate_app = typer.Typer(help="Manage pipeline candidates.", no_args_is_help=True)
 app.add_typer(candidate_app, name="candidate")
+
+keys_app = typer.Typer(help="Manage the operator signing key and trusted keys.", no_args_is_help=True)
+app.add_typer(keys_app, name="keys")
+
+audit_app = typer.Typer(help="Inspect the hash-chained audit log.", no_args_is_help=True)
+app.add_typer(audit_app, name="audit")
 
 
 # ── Top-level commands ────────────────────────────────────────────────────────
@@ -153,6 +162,46 @@ def candidate_list_cmd() -> None:
 def candidate_hash_cmd(candidate_id: str = typer.Argument(..., help="Candidate ID to hash.")) -> None:
     """Compute and record the source hash for a candidate's src/ tree."""
     candidate_hash(candidate_id)
+
+
+# ── Key commands ──────────────────────────────────────────────────────────────
+
+@keys_app.command("init")
+def keys_init_cmd(
+    passphrase: bool = typer.Option(False, "--passphrase", help="Encrypt the private key with a passphrase."),
+    force: bool = typer.Option(False, "--force", help="Replace an existing operator key."),
+) -> None:
+    """Create the operator signing key (stored outside every project)."""
+    keys_init(passphrase, force)
+
+@keys_app.command("show")
+def keys_show_cmd() -> None:
+    """Show the operator key, trusted keys and the signatures floor."""
+    keys_show()
+
+@keys_app.command("export")
+def keys_export_cmd(
+    output: Path = typer.Option(None, "--output", "-o", help="Write the public key here."),
+) -> None:
+    """Print or write the operator's public key (to trust it on another machine)."""
+    keys_export(output)
+
+@keys_app.command("trust")
+def keys_trust_cmd(public_key_file: Path = typer.Argument(..., help="PEM public key file.")) -> None:
+    """Trust another operator's public key."""
+    keys_trust(public_key_file)
+
+
+# ── Audit commands ────────────────────────────────────────────────────────────
+
+@audit_app.command("verify")
+def audit_verify_cmd(
+    reanchor: bool = typer.Option(
+        False, "--reanchor", help="Accept the current chain head as this project's anchor.",
+    ),
+) -> None:
+    """Verify the audit log's hash chain, signatures and anchor."""
+    audit_verify(reanchor)
 
 
 if __name__ == "__main__":

@@ -6,6 +6,55 @@ Format: `[Phase X] — Description` with date and test count.
 
 ---
 
+## [v0.4.0] — Signed evidence and hash-chained audit log
+*2026-10-24 · 419 tests passing*
+
+Closes the main v0.3 residual risk: anyone able to write to a project could
+rewrite an evidence file together with its `.sha256` sidecar, and the audit
+log was a plain, editable append file.
+
+### Added
+- **Ed25519-signed evidence** (`airlock/core/signing.py`). Verifier and
+  certifier reports, gate decisions and admission certificates get a `.sig`
+  sidecar. The signature binds the file's SHA-256 and its
+  `<candidate>/<document>` label, so it cannot be moved between documents or
+  candidates.
+- **Operator trust root outside the project** — the Airlock home
+  (`%APPDATA%\airlock`, `~/.config/airlock`, or `AIRLOCK_HOME`) holds the
+  private key, trusted public keys and the `require_signatures` floor. A
+  project's `integrity.require_signatures` can raise but never lower the
+  floor; a corrupt operator config is treated as "required".
+- **Hash-chained, signed, anchored audit log** (`airlock/core/audit.py`):
+  `seq` / `prev_hash` / `entry_hash` / `sig` on every entry, plus a per-project
+  head anchor in the Airlock home that detects truncation and is never moved
+  onto a chain that contradicts it.
+- Gate and admission block on any signature or audit-chain failure; gate
+  decisions and certificates record the `audit_head` they saw.
+- `airlock keys init [--passphrase] [--force] | show | export | trust`.
+- `airlock audit verify [--reanchor]`.
+- `airlock init` creates the operator key on first use (encrypted if
+  `AIRLOCK_KEY_PASSPHRASE` is set) and writes `integrity.require_signatures: true`.
+- Dashboard: "Audit chain" status card, chain banner on the Audit Log page,
+  per-document signature status, `/api/integrity`.
+- Dependency: `cryptography>=42`. `uv.lock` regenerated.
+
+### Security tests
+`tests/test_v04_signing.py` and `tests/test_v04_audit.py` attack the
+pipeline: forged reports with fresh sidecars, deleted signatures, signatures
+moved between candidates and documents, evidence signed by an untrusted key,
+forged gate decisions, policy downgrade below the operator floor, edited /
+deleted / reordered / rebuilt / truncated / wiped audit logs, and passphrase
+leakage into candidate code. Each defence was disabled in turn to confirm at
+least one test fails without it.
+
+### Upgrading a v0.3 project
+Run any pipeline command — `airlock init` in a new project, or
+`airlock keys init` — to create the operator key. Existing unsigned evidence
+is denied once signatures are required: re-run verify and certify. Existing
+audit entries become an unverifiable legacy prefix; new entries are chained.
+
+---
+
 ## [v0.3.0] — Airlock: revival and trust-layer hardening
 *2026-10-24 · 383 tests passing*
 

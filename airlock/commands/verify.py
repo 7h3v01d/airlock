@@ -15,6 +15,7 @@ from pathlib import Path
 import typer
 
 from airlock.config import load_config
+from airlock.commands._signing import prepare_signer
 from airlock.core.verifier.runner import run_verification
 from airlock.core.candidate_store import get_status, transition_status, CandidateError
 
@@ -58,6 +59,7 @@ def verify(candidate_id: str) -> None:
     typer.echo(f"  Running verifier...")
     typer.echo("")
 
+    prepare_signer(config)
     report = run_verification(candidate_dir, root, config)
 
     # ── Display results ───────────────────────────────────────────────────────

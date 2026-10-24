@@ -58,6 +58,10 @@ def create_app(project_root: Path) -> FastAPI:
             raise HTTPException(status_code=404, detail="Candidate not found")
         return JSONResponse(asdict(detail))
 
+    @app.get("/api/integrity")
+    def api_integrity() -> JSONResponse:
+        return JSONResponse(reader.integrity())
+
     @app.get("/api/audit")
     def api_audit() -> JSONResponse:
         return JSONResponse([asdict(e) for e in reader.audit_log()])
@@ -283,8 +287,27 @@ async function render() {
 }
 
 // ── Overview ──────────────────────────────────────────────────────────────────
+function integrityCard(ig) {
+  const color = ig.ok ? 'green' : 'red';
+  return `<div class="stat-card">
+        <div class="label">Audit chain</div>
+        <div class="value" style="font-size:18px;padding-top:4px;color:var(--${color})">${ig.ok ? 'INTACT' : 'BROKEN'}</div>
+        <div class="sub">${ig.entries} entries · ${ig.signed_entries} signed · ${ig.anchored ? 'anchored' : 'unanchored'}</div>
+      </div>`;
+}
+
+function integrityBanner(ig) {
+  if (ig.ok) {
+    return `<div class="card" style="border-color:var(--green)"><div class="card-header" style="color:var(--green)">✓ Chain intact
+      <span class="count">head seq ${ig.head_seq} · ${escapeHtml((ig.head_hash || '').substring(0, 23))} · signatures ${ig.signatures_required ? 'required' : 'optional'}${ig.legacy_entries ? ' · ' + ig.legacy_entries + ' legacy (unverifiable)' : ''}</span></div></div>`;
+  }
+  return `<div class="card" style="border-color:var(--red)"><div class="card-header" style="color:var(--red)">✗ Audit chain problems</div>
+    <ul class="audit-reasons" style="padding:12px 36px">${ig.problems.map(p => '<li>' + escapeHtml(p) + '</li>').join('')}</ul></div>`;
+}
+
 async function renderOverview(el) {
   const ov = await api('overview');
+  const ig = await api('integrity');
   state.overview = ov;
   document.getElementById('project-name').textContent = ov.project_name;
 
@@ -317,6 +340,7 @@ async function renderOverview(el) {
         <div class="value">${ov.total_candidates}</div>
         <div class="sub">${ov.admitted_count} admitted</div>
       </div>
+      ${integrityCard(ig)}
       <div class="stat-card">
         <div class="label">Last Activity</div>
         <div class="value" style="font-size:13px;padding-top:8px">${formatDate(ov.last_activity)}</div>
@@ -381,7 +405,10 @@ async function renderCandidateDetail(el) {
       <div class="doc-status" style="color:var(--${color})">${icon} ${e.present ? (e.verdict || 'present') : 'missing'}</div>
       ${e.verdict ? '<div class="doc-verdict">' + e.verdict + '</div>' : ''}
       <div class="sidecar-ok" style="color:var(--${e.sidecar_ok ? 'green' : (e.present ? 'red' : 'muted')})">
-        ${e.present ? (e.sidecar_ok ? '✓ sidecar verified' : '✗ ' + e.sidecar_msg) : ''}
+        ${e.present ? (e.sidecar_ok ? '✓ sidecar verified' : '✗ ' + escapeHtml(e.sidecar_msg)) : ''}
+      </div>
+      <div class="sidecar-ok" style="color:var(--${e.sig_ok ? 'green' : (e.present ? 'yellow' : 'muted')})">
+        ${e.present ? (e.sig_ok ? '✓ ' + escapeHtml(e.sig_msg) : '! ' + escapeHtml(e.sig_msg)) : ''}
       </div>
     </div>`;
   }).join('');
@@ -448,6 +475,7 @@ async function renderSpecs(el) {
 // ── Audit Log ─────────────────────────────────────────────────────────────────
 async function renderAudit(el) {
   const entries = await api('audit');
+  const ig = await api('integrity');
 
   const items = entries.map(e => {
     const eventColor = e.event === 'candidate_admitted' ? 'green'
@@ -483,6 +511,7 @@ async function renderAudit(el) {
       <h2>Audit Log</h2>
       <button class="refresh-btn" onclick="render()">↻ Refresh</button>
     </div>
+    ${integrityBanner(ig)}
     <div class="card">
       <div class="card-header">All Events <span class="count">${entries.length} entries · most recent first</span></div>
       <div class="log-scroll">${items || '<div class="empty"><div class="icon">≡</div><p>No audit events yet.</p></div>'}</div>

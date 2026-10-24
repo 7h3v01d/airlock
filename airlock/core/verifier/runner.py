@@ -43,6 +43,7 @@ SCANNABLE_SUFFIXES = {
     ".yaml", ".yml", ".cfg", ".ini", ".csv",
 }
 from airlock.core.candidate_store import compute_source_hash, CandidateError
+from airlock.core import signing
 
 VERSION = "0.1.0"
 
@@ -78,6 +79,7 @@ def run_verification(
     """
     candidate_id = candidate_dir.name
     manifest_path = candidate_dir / "manifest.json"
+    signer = signing.signer_for(policy)   # raises SigningError if required but unavailable
 
     # ── Load manifest ─────────────────────────────────────────────────────────
     manifest = {}
@@ -248,7 +250,7 @@ def run_verification(
     report_path = evidence_dir / "static_verification.json"
     report_data = asdict(report)
     report_data.pop("evidence_hash", None)
-    digest = seal_evidence(report_path, report_data)
+    digest = seal_evidence(report_path, report_data, signer=signer)
     report.evidence_hash = digest
 
     return report

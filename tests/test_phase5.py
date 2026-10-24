@@ -54,6 +54,11 @@ def locked_spec(project: Path) -> str:
     return spec_id
 
 
+def _sign(path: Path) -> None:
+    from airlock.core import signing
+    signing.sign_file(path, signing.load_signer())
+
+
 def _make_fully_evidenced_candidate(project: Path, locked_spec: str) -> Path:
     """Create a candidate with all evidence documents present and passing."""
     candidates_dir = project / "candidates"
@@ -76,18 +81,21 @@ def _make_fully_evidenced_candidate(project: Path, locked_spec: str) -> Path:
     ver_path = evidence_dir / "static_verification.json"
     ver_path.write_text(json.dumps(ver), encoding="utf-8")
     write_sidecar(ver_path)
+    _sign(ver_path)  # v0.4: valid evidence is signed
 
     # Test report — CERTIFIED (with detached sidecar)
     test = {"certification": "CERTIFIED", "passed": 5, "failed": 0, "source_hash": manifest["source_hash"]}
     test_path = evidence_dir / "test_report.json"
     test_path.write_text(json.dumps(test), encoding="utf-8")
     write_sidecar(test_path)
+    _sign(test_path)  # v0.4: valid evidence is signed
 
     # Coverage report (with detached sidecar)
     cov = {"line_coverage": 0.85, "branch_coverage": 0.75, "source_hash": manifest["source_hash"]}
     cov_path = evidence_dir / "coverage_report.json"
     cov_path.write_text(json.dumps(cov), encoding="utf-8")
     write_sidecar(cov_path)
+    _sign(cov_path)  # v0.4: valid evidence is signed
 
     transition_status(cdir, "verified")
     transition_status(cdir, "certified")
@@ -120,14 +128,17 @@ def _make_failing_verifier_candidate(project: Path, locked_spec: str) -> Path:
     ver_path = evidence_dir / "static_verification.json"
     ver_path.write_text(json.dumps(ver), encoding="utf-8")
     write_sidecar(ver_path)
+    _sign(ver_path)  # v0.4: valid evidence is signed
     test = {"certification": "CERTIFIED"}
     test_path = evidence_dir / "test_report.json"
     test_path.write_text(json.dumps(test), encoding="utf-8")
     write_sidecar(test_path)
+    _sign(test_path)  # v0.4: valid evidence is signed
     cov = {"line_coverage": 0.8}
     cov_path = evidence_dir / "coverage_report.json"
     cov_path.write_text(json.dumps(cov), encoding="utf-8")
     write_sidecar(cov_path)
+    _sign(cov_path)  # v0.4: valid evidence is signed
 
     transition_status(cdir, "verified")
     transition_status(cdir, "certified")

@@ -16,6 +16,7 @@ from pathlib import Path
 import typer
 
 from airlock.config import load_config
+from airlock.commands._signing import prepare_signer
 from airlock.core.certifier.runner import run_certification
 from airlock.core.candidate_store import get_status, transition_status, CandidateError
 
@@ -66,6 +67,7 @@ def certify(candidate_id: str) -> None:
     typer.echo(f"  Running test suite...")
     typer.echo("")
 
+    prepare_signer(config)
     test_report, cov_report = run_certification(candidate_dir, root, config)
 
     # ── Display results ───────────────────────────────────────────────────────

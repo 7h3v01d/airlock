@@ -172,7 +172,7 @@ def verify_sidecar(evidence_path: Path) -> tuple[bool, str]:
     return True, "ok"
 
 
-def seal_evidence(path: Path, data: dict) -> str:
+def seal_evidence(path: Path, data: dict, signer: "object | None" = None) -> str:
     """
     Write an evidence document and create its detached sidecar.
 
@@ -189,4 +189,13 @@ def seal_evidence(path: Path, data: dict) -> str:
         )
 
     path.write_text(json.dumps(data, indent=2), encoding="utf-8")
-    return write_sidecar(path)
+    digest = write_sidecar(path)
+    if signer is not None:
+        from airlock.core.signing import sign_file
+        sign_file(path, signer)
+    else:
+        # Never leave a stale signature describing earlier content.
+        stale = path.with_suffix(path.suffix + ".sig")
+        if stale.exists():
+            stale.unlink()
+    return digest

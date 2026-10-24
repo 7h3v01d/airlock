@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "airlock"
-version = "0.3.0"
+version = "0.4.0"
 description = "Local-first LLM-assisted software engineering with evidence-grade trust boundaries."
 requires-python = ">=3.11"
 license = "Apache-2.0"
@@ -13,6 +13,7 @@ readme = "README.md"
 dependencies = [
     "typer",
     "pyyaml",
+    "cryptography>=42",
 ]
 
 [project.optional-dependencies]

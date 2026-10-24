@@ -31,6 +31,7 @@ from dataclasses import dataclass, field, asdict
 from datetime import datetime, timezone
 from pathlib import Path
 
+from airlock.core import signing
 from airlock.core.hashing import (
     seal_evidence, hash_directory_tree, find_unhashed_files, find_symlinks,
 )
@@ -115,6 +116,7 @@ def run_certification(
     """
     candidate_id = candidate_dir.name
     manifest_path = candidate_dir / "manifest.json"
+    signer = signing.signer_for(policy)   # raises SigningError if required but unavailable
     manifest = {}
     if manifest_path.exists():
         manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
@@ -213,8 +215,8 @@ def run_certification(
     evidence_dir = project_root / "evidence" / candidate_id
     evidence_dir.mkdir(parents=True, exist_ok=True)
 
-    _write_evidence(evidence_dir / "test_report.json", asdict(test_report), test_report)
-    _write_evidence(evidence_dir / "coverage_report.json", asdict(cov_report), cov_report)
+    _write_evidence(evidence_dir / "test_report.json", asdict(test_report), test_report, signer)
+    _write_evidence(evidence_dir / "coverage_report.json", asdict(cov_report), cov_report, signer)
 
     return test_report, cov_report
 
@@ -433,9 +435,9 @@ def _parse_coverage_report(cov_path: Path, candidate_id: str) -> CoverageReport:
 
 # ── Evidence writer ───────────────────────────────────────────────────────────
 
-def _write_evidence(path: Path, data: dict, report_obj: object) -> None:
+def _write_evidence(path: Path, data: dict, report_obj: object, signer: object = None) -> None:
     data.pop("evidence_hash", None)
-    digest = seal_evidence(path, data)
+    digest = seal_evidence(path, data, signer=signer)
     if hasattr(report_obj, "evidence_hash"):
         report_obj.evidence_hash = digest
 
